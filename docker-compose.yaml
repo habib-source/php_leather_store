@@ -1,0 +1,36 @@
+services:
+  php:
+    build:
+      dockerfile: php/Dockerfile
+    environment:
+      DB_NAME: leather_store
+      DB_USER: habib
+      DB_PASSWORD: web
+      DB_HOST: database
+      DB_PORT: 5432
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "80:80"
+  migration:
+    depends_on:
+      - database
+    image: sqldef/psqldef:3.9
+    environment:
+      PGPASSWORD: web
+    volumes:
+      - ./schema.sql:/schema.sql
+    command: ["-h", "database", "-U", "habib", "leather_store", "--apply", "--file=schema.sql"]
+  database:
+    image: postgres:18.2-alpine3.23
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: leather_store
+      POSTGRES_USER: habib
+      POSTGRES_PASSWORD: web
+    volumes:
+      - database_data:/var/lib/postgresql
+volumes:
+  database_data:
+    driver: local
