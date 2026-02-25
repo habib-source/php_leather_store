@@ -1,0 +1,30 @@
+FROM php:8.5-cli-alpine3.23 as builder
+COPY --from=composer/composer:2.9.5 /usr/bin/composer /usr/bin/composer
+COPY composer.json .
+RUN composer install \
+    --no-interaction \
+    --no-plugins \
+    --no-dev \
+    --prefer-dist
+RUN composer update
+
+
+FROM php:8.5-apache
+
+
+RUN apt-get update && apt-get upgrade -y
+
+RUN apt-get install -y libpq-dev libonig-dev netcat-traditional wget
+
+RUN wget -O - https://github.com/sqldef/sqldef/releases/latest/download/psqldef_linux_amd64.tar.gz \
+	| tar xvz && mv psqldef /usr/local/bin/
+
+RUN docker-php-ext-install mbstring pdo pdo_pgsql
+
+COPY --from=builder ./vendor/ ../vendor/
+
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint
+
+ENTRYPOINT ["entrypoint"]
+CMD ["docker-php-entrypoint","apache2-foreground"]

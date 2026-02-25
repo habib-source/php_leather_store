@@ -1,1 +1,4 @@
 Dockerfile
+docker-compose.yaml
+.dockerenv
+composer

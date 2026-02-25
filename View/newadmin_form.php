@@ -1,6 +1,15 @@
+<?php
+require_once('../src/Utils/auth.php');
+$_SESSION['req_page']="../../View/adminpanel.php";
+Authentication();
+if(!$_SESSION["admin"]){
+	$_SESSION["ERROR"]="Unauthorized you must use a admin accaunt.";
+	header("location:login.php");
+}
+?>
 <body>
-  <h1>Sign UP:</h1>
-      <form action="../src/Controllers/newuser.php" method="post" enctype="multipart/form-data">
+  <h1>New Admin user:</h1>
+      <form action="../src/Controllers/newadmin.php" method="post" enctype="multipart/form-data">
       	<label for="user_name">User name:</label><br>
       	<input type="text" id="user_name" name="user_name" ><br>
       	<label for="email">Email:</label><br>

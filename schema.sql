@@ -6,6 +6,8 @@ CREATE TABLE users (
   user_name varchar(100) UNIQUE NOT NULL,
   pwd varchar(255) NOT NULL,
   active boolean DEFAULT FALSE,
+  activation_code   varchar(255),
+  activation_expiry timestamp,
   admin boolean DEFAULT FALSE,
   first_name VARCHAR(100),
   last_name VARCHAR(100),

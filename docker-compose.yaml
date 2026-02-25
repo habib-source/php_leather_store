@@ -1,26 +1,27 @@
 services:
   php:
+    depends_on:
+      - database
     build:
-      dockerfile: php/Dockerfile
+      dockerfile: Dockerfile
     environment:
       DB_NAME: leather_store
       DB_USER: habib
       DB_PASSWORD: web
+      PGPASSWORD: web
       DB_HOST: database
       DB_PORT: 5432
+      ADMIN_USER_NAME: admin
+      ADMIN_USER_EMAIL: admini@leather-store.com
+      ADMIN_USER_PWD: admin
+      USER_EMAIL_VERF: TRUE
+      VENDOR_DIR: ../vendor
+    env_file:
+      - .dockerenv
     volumes:
       - .:/var/www/html
     ports:
       - "80:80"
-  migration:
-    depends_on:
-      - database
-    image: sqldef/psqldef:3.9
-    environment:
-      PGPASSWORD: web
-    volumes:
-      - ./schema.sql:/schema.sql
-    command: ["-h", "database", "-U", "habib", "leather_store", "--apply", "--file=schema.sql"]
   database:
     image: postgres:18.2-alpine3.23
     ports:
