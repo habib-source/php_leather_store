@@ -10,8 +10,9 @@ $user->user_name=$user_name;
 $user->email=$email;
 $user->pwd=$pwd;
 
+require_once('../Utils/start_session.php');
 if($user->email_used()){
-	$_SESSION["ERROR"]="Email name is used.";
+	$_SESSION["ERROR"]="Email is used.";
 	header("location:../../View/signup.php");
 }
 elseif($user->user_name_used()){

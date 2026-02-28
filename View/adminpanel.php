@@ -8,3 +8,5 @@ if(!$_SESSION["admin"]){
 }
 ?>
 <h1>Welcome to the admine panel</p>
+<a href="./list_users.php">Manage users</a><br>
+<a href="./newadmin_form.php">New Admin account</a>

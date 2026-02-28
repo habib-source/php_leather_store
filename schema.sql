@@ -12,7 +12,7 @@ CREATE TABLE users (
   first_name VARCHAR(100),
   last_name VARCHAR(100),
   user_sex sex,
-  date_naiss date,
+  birthday date,
   img_path varchar(255)
 );
 
