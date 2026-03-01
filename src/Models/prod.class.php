@@ -44,6 +44,14 @@ function mod($id){
 	$pdo->exec($req) or print_r($pdo->errorInfo());
 }
 
+function get_all(){
+	require_once(__DIR__ .'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req="SELECT * FROM products";
+	$res=$pdo->query($req) or print_r($pdo->errorInfo());
+	return $res;
+}
 function del($id){
 	require_once('../Utils/pdo.php');
 	$cnx=new connexion();

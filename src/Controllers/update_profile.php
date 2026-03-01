@@ -34,7 +34,6 @@ if(!is_null($user->email) AND $user->email!=$data["email"] AND $config["USER_EMA
 if($_FILES['photo']['size']!=0){
 	if(isset($data["img_path"]) AND $data["img_path"]!='')
 		unlink(__DIR__."/../../media/".$data["img_path"]);
-	$dest="img/";
 	$im_name=$_FILES["photo"]["name"];
 	$img_path=date("ymd_His").$im_name;
 	$user->img_path= $img_path;

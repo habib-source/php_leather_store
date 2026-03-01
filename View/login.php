@@ -1,11 +1,9 @@
 <?php require_once('../src/Utils/start_session.php');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="css/bootstrap.min.css">
-</head>
 <body>
+<?php
+require_once(__DIR__.'/static/header.php');
+?>
   <h1>Login:</h1>
 <?php if(isset($_SESSION["ERROR"])){
   	$ERROR=$_SESSION["ERROR"];

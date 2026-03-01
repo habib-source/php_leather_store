@@ -10,6 +10,7 @@ require_once('../src/Models/user.class.php');
 $user=new User();
 $user->id=$_GET["id"];
 $user_data=$user->get();
+require_once(__DIR__.'/static/header.php');
 ?>
 <h1>Account informations:</h1>
 <?php if(isset($_SESSION["ERROR"])){

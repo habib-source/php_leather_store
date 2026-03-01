@@ -9,7 +9,11 @@ $user=new User();
 $user->user_name=$user_name;
 $user_data=$user->get();
 ?>
+<?php
+require_once(__DIR__.'/static/header.php');
+?>
 <h1>Account informations:</h1>
+
 <?php if(isset($_SESSION["ERROR"])){
   	$ERROR=$_SESSION["ERROR"];
 	echo "<span style='color:red'>$ERROR</span>";

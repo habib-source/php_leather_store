@@ -29,6 +29,7 @@ CREATE TABLE products (
   description TEXT,
   price DECIMAL(12, 2) NOT NULL,
   stock_quantity INTEGER DEFAULT 0,
+  img_path varchar(255),
   category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
 );
 

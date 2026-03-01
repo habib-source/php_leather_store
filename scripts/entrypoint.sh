@@ -1,8 +1,8 @@
 #!/bin/sh
 echo "Waiting for Postgresql..."
 
-while ! nc -z $DB_HOST $DB_PORT; do
-  sleep 0.1
+until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME"; do
+  sleep 1
 done
 
 echo "Postgresql started \n"
@@ -28,6 +28,10 @@ echo "-----------------------------------"
 echo "-----------------------------------"
 echo ""
 
-exec chown 33 -R media
+if [ ! -d "media" ]; then
+  echo "Creating media directory..."
+  mkdir -p media
+  chown 33 -R media
+fi
 
 exec "$@"

@@ -1,6 +1,5 @@
 <?php
 require_once('../src/Utils/auth.php');
-$_SESSION['req_page']="../../View/adminpanel.php";
 Authentication();
 if(!$_SESSION["admin"]){
 	$_SESSION["ERROR"]="Unauthorized you must use a admin accaunt.";
@@ -10,10 +9,10 @@ require_once(__DIR__.'/static/header.php');
 ?>
 <table>
 <caption>
-<h1>Users list:</h1>
+<h1>Products list:</h1>
 </caption>
 <tr>
-<th>Profile Picture</th>
+<th>Pr Picture</th>
 <th>ID</th>
 <th>Email</th>
 <th>User name</th>

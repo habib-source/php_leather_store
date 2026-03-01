@@ -6,7 +6,9 @@ if(!$_SESSION["admin"]){
 	$_SESSION["ERROR"]="Unauthorized you must use a admin accaunt.";
 	header("location:login.php");
 }
+require_once(__DIR__.'/static/header.php');
 ?>
 <h1>Welcome to the admine panel</p>
 <a href="./list_users.php">Manage users</a><br>
-<a href="./newadmin_form.php">New Admin account</a>
+<a href="./newadmin_form.php">New Admin account</a><br>
+<a href="./new_prod_form.php">New product</a>

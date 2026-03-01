@@ -14,7 +14,7 @@ FROM php:8.5-apache
 
 RUN apt-get update && apt-get upgrade -y
 
-RUN apt-get install -y libpq-dev libonig-dev netcat-traditional wget
+RUN apt-get install -y libpq-dev libonig-dev postgresql-client wget
 
 RUN wget -O - https://github.com/sqldef/sqldef/releases/latest/download/psqldef_linux_amd64.tar.gz \
 	| tar xvz && mv psqldef /usr/local/bin/
