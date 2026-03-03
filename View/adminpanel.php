@@ -11,4 +11,7 @@ require_once(__DIR__.'/static/header.php');
 <h1>Welcome to the admine panel</p>
 <a href="./list_users.php">Manage users</a><br>
 <a href="./newadmin_form.php">New Admin account</a><br>
-<a href="./new_prod_form.php">New product</a>
+<a href="./admin_list_products.php">Manage products</a><br>
+<a href="./new_prod_form.php">New product</a><br>
+<a href="./admin_list_categories.php">Manage categories</a><br>
+<a href="./new_categ_form.php">New Categorie</a><br>

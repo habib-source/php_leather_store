@@ -14,12 +14,11 @@ require_once(__DIR__.'/static/header.php');
   <h1>New Product:</h1>
       <form action="../src/Controllers/newproduct.php" method="post" enctype="multipart/form-data">
       	<label for="name">Product name:</label><br>
-      	<input type="text" id="user_name" name="user_name" ><br>
+      	<input type="text" id="name" name="name" ><br>
       	<label for="sku">Product sku:</label><br>
       	<input type="text" id="sku" name="sku" ><br>
       	<label for="description">Description:</label><br>
 	<textarea id="description" name="description" rows="4" cols="50">
-		Enter Description here...
 	</textarea><br>
       	<label for="price">Price:</label><br>
       	<input type="number" id="price" name="price" ><br>

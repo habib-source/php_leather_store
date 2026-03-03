@@ -18,19 +18,24 @@ CREATE TABLE users (
 
 CREATE TABLE categories (
   id serial PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
+  name VARCHAR(100) NOT NULL UNIQUE,
   description TEXT
+);
+
+CREATE TABLE products_categories (
+  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
+  PRIMARY KEY(category_id, product_id)
 );
 
 CREATE TABLE products (
   id serial PRIMARY KEY,
   sku VARCHAR(50) UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
-  description TEXT,
   price DECIMAL(12, 2) NOT NULL,
+  description TEXT,
   stock_quantity INTEGER DEFAULT 0,
-  img_path varchar(255),
-  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
+  img_path varchar(255)
 );
 
 CREATE TYPE order_status AS ENUM ('pending', 'processing', 'shipped', 'delivered', 'cancelled');

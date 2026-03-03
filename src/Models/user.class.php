@@ -17,13 +17,9 @@ public $img_path;
 private $activation_code;
 private $activation_expiry;
 private $config;
-function __construct() {
-	include(__DIR__ ."/../../config.php");
-	$this->config = $config;
-}
 
-function new(){
-	$data = [
+public function getData() {
+        return [
 		'user_name'  		=> $this->user_name,
 		'email'      		=> $this->email,
 		'pwd'        		=> $this->pwd,
@@ -37,6 +33,15 @@ function new(){
 		'birthday' 		=> $this->birthday,
 		'img_path'   		=> $this->img_path
 	];
+}
+
+function __construct() {
+	include(__DIR__ ."/../../config.php");
+	$this->config = $config;
+}
+
+function new(){
+	$data = $this->getData();
 	require_once(__DIR__ .'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
@@ -69,7 +74,7 @@ function list(){
 }
 
 function dynamic_get($target, $ident){
-	require_once(__DIR__ .'/../Utils/pdo.php');
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
 	reset($ident);
@@ -80,7 +85,7 @@ function dynamic_get($target, $ident){
 }
 
 function get(){
-	require_once(__DIR__ .'/../Utils/pdo.php');
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
 	if(!is_null($this->id) AND $this->id!='')
@@ -95,7 +100,7 @@ function get(){
 }
 
 function get_all(){
-	require_once(__DIR__ .'/../Utils/pdo.php');
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
 	$req="SELECT * FROM users";
@@ -105,21 +110,8 @@ function get_all(){
 
 function mod(){
 	$this->id=$this->get()["id"];
-	$data = [
-		'user_name'  		=> $this->user_name,
-		'email'      		=> $this->email,
-		'pwd'        		=> $this->pwd,
-		'active'     		=> $this->active,
-		'activation_code'	=> $this->activation_code,
-		'activation_expiry'	=> $this->activation_expiry,
-		'admin'      		=> $this->admin,
-		'first_name' 		=> $this->first_name,
-		'last_name'  		=> $this->last_name,
-		'user_sex'   		=> $this->user_sex,
-		'birthday' 		=> $this->birthday,
-		'img_path'   		=> $this->img_path
-	];
-	require_once(__DIR__ .'/../Utils/pdo.php');
+	$data = $this->getData();
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
 	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
@@ -134,7 +126,7 @@ function mod(){
 }
 
 function del($id){
-	require_once(__DIR__ .'/../Utils/pdo.php');
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
 	$req="DELETE FROM users WHERE id=$id";
@@ -143,7 +135,7 @@ function del($id){
 
 function email_used()
 {
-	require_once(__DIR__ .'/../Utils/pdo.php');
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
 	$req= "SELECT count(*) FROM users WHERE email='$this->email' " ;
@@ -153,12 +145,12 @@ function email_used()
 
 function user_name_used()
 {
-	require_once(__DIR__ .'/../Utils/pdo.php');
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
 	$req= "SELECT count(*) FROM users WHERE user_name='$this->user_name' " ;
 	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res->fetchColumn(0)==1;
+	return $res->fetchColumn()==1;
 }
 function generate_activation_code(){
 	$this->activation_code = bin2hex(random_bytes(16));
