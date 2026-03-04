@@ -99,6 +99,58 @@ function get(){
 	return $data;
 }
 
+function add_to_shopping_cart($product_id, $quantity){
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req = "INSERT INTO cart_items (user_id, product_id, quantity) VALUES (".$this->id.",$product_id,$quantity)";
+	$pdo->exec($req) or print_r($pdo->errorInfo());
+}
+
+function update_increment_prod_in_shopping_cart($product_id, $quantity){
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req = "UPDATE cart_items SET quantity = quantity + $quantity where user_id= ".$this->id." AND product_id = $product_id";
+	$pdo->exec($req) or print_r($pdo->errorInfo());
+}
+
+function update_prod_in_shopping_cart($product_id, $quantity){
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req = "UPDATE cart_items SET quantity = $quantity where user_id= ".$this->id." AND product_id = $product_id";
+	$pdo->exec($req) or print_r($pdo->errorInfo());
+}
+
+function get_shopping_cart(){
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req = "SELECT * from cart_items where user_id =".$this->id;
+	$data=$pdo->query($req) or print_r($pdo->errorInfo());
+	return $data;
+}
+
+function exist_in_shopping_cart($product_id)
+{
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req= "SELECT count(*) FROM cart_items WHERE user_id = $this->id AND product_id = $product_id" ;
+	$res=$pdo->query($req) or print_r($pdo->errorInfo());
+	return $res->fetchColumn()==1;
+}
+
+function delete_from_shopping_cart($product_id)
+{
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req= "DELETE FROM cart_items WHERE user_id = $this->id AND product_id = $product_id" ;
+	$pdo->exec($req) or print_r($pdo->errorInfo());
+}
+
 function get_all(){
 	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();

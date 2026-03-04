@@ -57,9 +57,8 @@ CREATE TABLE order_items (
 );
 
 CREATE TABLE cart_items (
-  id serial PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
-  UNIQUE(user_id, product_id),
+  PRIMARY KEY(user_id, product_id),
   quantity INTEGER DEFAULT 1
 );

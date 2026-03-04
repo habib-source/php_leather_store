@@ -17,7 +17,7 @@ require_once(__DIR__.'/static/header.php');
   	$ERROR=$_SESSION["ERROR"];
 	echo "<span style='color:red'>$ERROR</span>";
 	unset($_SESSION['ERROR']);} ?>
-<form action="../src/Controllers/admin_update_categorie.php" method="post" enctype="multipart/form-data">
+<form action="../src/Controllers/admin_update_categorie.php" method="post">
 	<label for="id">ID: <?php echo $categ_data["id"]?></label><br>
 	<input  type="hidden" id="id" name="id" <?php echo "value='".$categ_data["id"]."'"?> ><br>
       	<label for="name">Categorie name:</label><br>
