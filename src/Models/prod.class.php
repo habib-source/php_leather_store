@@ -30,15 +30,6 @@ function new(){
         $sth->execute($filtered) or print_r($pdo->errorInfo());
 }
 
-function list(){
-	require_once(__DIR__.'/.../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM products";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
-}
-
 function dynamic_get($target, $ident){
 	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();

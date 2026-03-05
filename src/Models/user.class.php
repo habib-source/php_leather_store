@@ -64,15 +64,6 @@ function verify(){
 	return $v;
 }
 
-function list(){
-	require_once(__DIR__ .'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM users";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
-}
-
 function dynamic_get($target, $ident){
 	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
@@ -97,6 +88,23 @@ function get(){
 	$res=$pdo->query($req) or print_r($pdo->errorInfo());
 	$data= $res->fetch(PDO::FETCH_LAZY);
 	return $data;
+}
+
+function get_orders(){
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req="SELECT * FROM orders where user_id=$this->id";
+	$res=$pdo->query($req) or print_r($pdo->errorInfo());
+	return $res;
+}
+
+function clean_chopping_cart(){
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req = "DELETE FROM cart_items where user_id=$this->id";
+	$pdo->exec($req) or print_r($pdo->errorInfo());
 }
 
 function add_to_shopping_cart($product_id, $quantity){

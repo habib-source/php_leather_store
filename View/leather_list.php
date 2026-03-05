@@ -41,8 +41,11 @@ echo "<p>".$data['price']." USD</p>";
 ?>
 	<br>
 	<b><?php echo $total?> USD</b>
-	<input  type='hidden' id='total' name='total' value='<?php echo $total ?>'>
 	<br>
+	<br>
+      	<label for="shipping_adress">Shipping adress:</label><br>
+      	<textarea id="shipping_address" name="shipping_address" rows="1" cols="70">
+	</textarea><br>
 	<br>
 	<button type="submit" name="action" value="update">Update</button>
 	<button type="submit" name="action" value="checkout">Checkout</button>
