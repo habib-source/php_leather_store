@@ -14,8 +14,7 @@ services:
       ADMIN_USER_NAME: admin
       ADMIN_USER_EMAIL: admini@leather-store.com
       ADMIN_USER_PWD: admin
-      USER_EMAIL_VERF: TRUE
-      VENDOR_DIR: ../vendor
+      URL: http://localhost/
     env_file:
       - .dockerenv
     volumes:

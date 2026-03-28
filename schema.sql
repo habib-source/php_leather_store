@@ -45,7 +45,7 @@ CREATE TABLE orders (
   total_amount DECIMAL(12, 2) NOT NULL,
   status order_status DEFAULT 'pending',
   shipping_address TEXT NOT NULL,
-  user_id INTEGER REFERENCES users(id) NOT NULL ON DELETE CASCADE
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE order_items (

@@ -7,13 +7,17 @@ function __construct() {
 }
 public function CNXbase(){
 	try{
-		$dbc=new PDO("pgsql:host=".$this->config['DB_HOST'].";dbname=".$this->config['DB_NAME'].";port=".$this->config['DB_PORT'],$this->config['DB_USER'],$this->config['DB_PASSWORD']);
+		$dsn = "pgsql:host={$this->config['DB_HOST']};dbname={$this->config['DB_NAME']};port={$this->config['DB_PORT']}";
+	    	$options = [
+			PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+	    	];
+	    return new PDO($dsn, $this->config['DB_USER'], $this->config['DB_PASSWORD'], $options);
 
 	}
 	catch(PDOException  $e){
-		print "Erreur !: " . $e->getMessage() ;
+		throw new Exception("Database connection failed: ".$e->getMessage());
 	}
-	return $dbc;
 }
 }
 ?>

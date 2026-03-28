@@ -2,23 +2,30 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
+require_once(__DIR__ .'/../Utils/pdo.php');
 class User{
-public $id;
-public $user_name;
-public $email;
-public $pwd;
-public $active;
-public $admin;
-public $first_name;
-public $last_name;
-public $user_sex;
-public $birthday;
-public $img_path;
-private $activation_code;
-private $activation_expiry;
-private $config;
+public ?int $id = NULL;
+public ?string $user_name = NULL;
+public ?string $email = NULL;
+public ?string $pwd = NULL;
+public ?bool $active = NULL;
+public ?bool $admin = NULL;
+public ?string $first_name = NULL;
+public ?string $last_name = NULL;
+public ?string $user_sex = NULL;
+public ?string $birthday = NULL;
+public ?string $img_path = NULL;
+private ?string $activation_code = NULL;
+private ?string $activation_expiry = NULL;
+private array $config;
+private PDO $pdo;
 
-public function getData() {
+function __construct(?array $config = null, ?PDO $pdo = null) {
+	$this->config ??= require(__DIR__ ."/../../config.php");
+	$this->pdo ??= (new connexion())->CNXbase();
+}
+
+public function getData(): ?array  {
         return [
 		'user_name'  		=> $this->user_name,
 		'email'      		=> $this->email,
@@ -35,190 +42,102 @@ public function getData() {
 	];
 }
 
-function __construct() {
-	include(__DIR__ ."/../../config.php");
-	$this->config = $config;
-}
-
 function new(){
 	$data = $this->getData();
-	require_once(__DIR__ .'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
 	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
 	$columns = implode(', ', array_keys($filtered));
 	$placeholders = ':' . implode(', :', array_keys($filtered));
 	$req = "INSERT INTO users ($columns) VALUES ($placeholders)";
-	$sth=$pdo->prepare($req);
-        $sth->execute($filtered) or print_r($pdo->errorInfo());
+	$sth=$this->pdo->prepare($req);
+        $sth->execute($filtered) or print_r($this->pdo->errorInfo());
 }
 
-function verify(){
-	require_once(__DIR__ .'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT pwd FROM users where email='$this->email'";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	$p=$res->fetch(PDO::FETCH_LAZY);
-	$v=password_verify($this->pwd,$p["pwd"]);
-	return $v;
+function verify(): bool{
+	$req = "SELECT pwd FROM users WHERE email = :email";
+    	$sth = $this->pdo->prepare($req);
+    	$sth->execute(['email' => $this->email]);
+	$p = $sth->fetch(PDO::FETCH_LAZY);
+    	return ($p && password_verify($this->pwd, $p["pwd"]));
 }
 
-function dynamic_get($target, $ident){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	reset($ident);
-	$req="SELECT ".$target." FROM users where ".key($ident)."='".current($ident)."'";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	$data= $res->fetch(PDO::FETCH_LAZY);
-	return $data[$target];
+function dynamic_get($target, $ident): ?string {
+        $column = key($ident);
+        $value = current($ident);
+        $stmt = $this->pdo->prepare("SELECT $target FROM users WHERE $column = :val");
+        $stmt->execute(['val' => $value]);
+        $data = $stmt->fetch();
+        return $data ? $data[$target] : null;
 }
 
-function get(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	if(!is_null($this->id) AND $this->id!='')
-		$req="SELECT * FROM users where id='$this->id'";
-	elseif(!is_null($this->email) AND $this->email!='')
-		$req="SELECT * FROM users where email='$this->email'";
-	elseif(!is_null($this->user_name) AND $this->user_name!='')
-		$req="SELECT * FROM users where user_name='$this->user_name'";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	$data= $res->fetch(PDO::FETCH_LAZY);
-	return $data;
+function get_target($target): ?string {
+	return $this->dynamic_get($target, array('id' => $this->id));
 }
 
-function get_orders(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM orders where user_id=$this->id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+function get(): ?array {
+        $sql = "SELECT * FROM users WHERE ";
+        $params = [];
+
+        if (!empty($this->id)) {
+            $sql .= "id = :id";
+            $params['id'] = $this->id;
+        } elseif (!empty($this->email)) {
+            $sql .= "email = :email";
+            $params['email'] = $this->email;
+        } elseif (!empty($this->user_name)) {
+            $sql .= "user_name = :user_name";
+            $params['user_name'] = $this->user_name;
+        } else {
+            return null;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch();
 }
 
-function clean_chopping_cart(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "DELETE FROM cart_items where user_id=$this->id";
-	$pdo->exec($req) or print_r($pdo->errorInfo());
-}
-
-function add_to_shopping_cart($product_id, $quantity){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "INSERT INTO cart_items (user_id, product_id, quantity) VALUES (".$this->id.",$product_id,$quantity)";
-	$pdo->exec($req) or print_r($pdo->errorInfo());
-}
-
-function update_increment_prod_in_shopping_cart($product_id, $quantity){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "UPDATE cart_items SET quantity = quantity + $quantity where user_id= ".$this->id." AND product_id = $product_id";
-	$pdo->exec($req) or print_r($pdo->errorInfo());
-}
-
-function update_prod_in_shopping_cart($product_id, $quantity){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "UPDATE cart_items SET quantity = $quantity where user_id= ".$this->id." AND product_id = $product_id";
-	$pdo->exec($req) or print_r($pdo->errorInfo());
-}
-
-function get_shopping_cart(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "SELECT * from cart_items where user_id =".$this->id;
-	$data=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $data;
-}
-
-function exist_in_shopping_cart($product_id)
-{
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req= "SELECT count(*) FROM cart_items WHERE user_id = $this->id AND product_id = $product_id" ;
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res->fetchColumn()==1;
-}
-
-function delete_from_shopping_cart($product_id)
-{
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req= "DELETE FROM cart_items WHERE user_id = $this->id AND product_id = $product_id" ;
-	$pdo->exec($req) or print_r($pdo->errorInfo());
-}
-
-function get_all(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
+function get_all(): ?array {
 	$req="SELECT * FROM users";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
+	$res=$this->pdo->query($req);
 	return $res;
 }
 
 function mod(){
 	$this->id=$this->get()["id"];
 	$data = $this->getData();
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
 	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
 	$setPart = [];
    	foreach (array_keys($filtered) as $key) {
    		$setPart[] = "$key = :$key";
    	}
    	$setString = implode(', ', $setPart);
-	$req = "UPDATE users SET $setString WHERE id=$this->id";
-	$sth=$pdo->prepare($req);
-        $sth->execute($filtered) or print_r($pdo->errorInfo());
+	$req = "UPDATE users SET $setString WHERE id = :id";
+	$params = array_merge($filtered, ['id' => $this->id]);
+	$sth = $this->pdo->prepare($req);
+    	$sth->execute($params);
 }
 
-function del($id){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="DELETE FROM users WHERE id=$id";
-	$pdo->exec($req);
+function del($id) {
+    $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
+    $stmt->execute(['id' => $id]);
 }
 
-function email_used()
-{
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req= "SELECT count(*) FROM users WHERE email='$this->email' " ;
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res->fetchColumn(0)==1;
+function email_used(): bool {
+    $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
+    $stmt->execute(['email' => $this->email]);
+    return $stmt->fetchColumn() == 1;
 }
 
-function user_name_used()
-{
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req= "SELECT count(*) FROM users WHERE user_name='$this->user_name' " ;
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res->fetchColumn()==1;
+function user_name_used(): bool {
+    	$stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE user_name = :user_name");
+    	$stmt->execute(['user_name' => $this->user_name]);
+    	return $stmt->fetchColumn() ==1;
 }
+
 function generate_activation_code(){
 	$this->activation_code = bin2hex(random_bytes(16));
 	$this->activation_expiry = date('Y-m-d H:i:s',  time() + $this->config["ACTIVATION_EXPIRY_PERIOD"]);
 }
 
-function send_activation_email(){
-	$activation_link = $this->config["URL"] . "src/Controllers/activate.php?email=".$this->email."&activation_code=".$this->activation_code;
+function send_email($sub, $body, $alt_body){
     	require  __DIR__ ."/../../".$this->config["VENDOR_DIR"].'/autoload.php';
     	$mail = new PHPMailer(true);
 	try {
@@ -235,16 +154,93 @@ function send_activation_email(){
 		$mail->Password = $this->config["EMAIL_PASSWORD"];
 		$mail->setFrom($this->config["EMAIL"], $this->config["EMAIL_SENDER_NAME"]);
 		$mail->addAddress($this->email, $this->user_name);
-		$mail->Subject = 'Activate your account';
-		$mail->Body    = "Click <a href=".$activation_link.">HERE</a> to activate your account";
-    		$mail->AltBody = 'Click the following link to activate your account:'.$activation_link;
+		$mail->Subject = $sub;
+		$mail->Body    = $body;
+    		$mail->AltBody = $alt_body;
 		$mail->send();
 	} catch (Exception) {
 	    	echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 	}
 }
+
+function send_activation_email(){
+	$activation_link = $this->config["URL"] . "src/Controllers/activate.php?email=".$this->email."&activation_code=".$this->activation_code;
+	$Subject = 'Activate your account';
+	$Body    = "Click <a href='" . htmlspecialchars($activation_link) . "'>HERE</a> to activate your account";
+    	$AltBody = 'Click the following link to activate your account:'.$activation_link;
+	$this->send_email($Subject, $Body, $AltBody);
+}
+
+function send_Status_update_email($status){
+	$Subject = 'Order Status update';
+	$Body    = "Your order is  " . htmlspecialchars($status);
+    	$AltBody = $Body;
+	$this->send_email($Subject, $Body, $AltBody);
+}
+
 function activate_user(){
 	$this->active=TRUE;
 	$this->mod();
+}
+
+function get_orders(): ?PDOStatement {
+        $stmt = $this->pdo->prepare("SELECT * FROM orders where user_id = :id");
+        $stmt->execute(['id' => $this->id]);
+	return $stmt;
+}
+
+function clean_chopping_cart(){
+        $stmt = $this->pdo->prepare("DELETE FROM cart_items where user_id = :id");
+        $stmt->execute(['id' => $this->id]);
+}
+
+function exist_in_shopping_cart($product_id): bool {
+	$stmt = $this->pdo->prepare("SELECT COUNT(*) FROM cart_items WHERE user_id = :user_id AND product_id = :product_id");
+    	$stmt->execute([
+    		'user_id'    => $this->id,
+    		'product_id' => $product_id
+    	]);
+	return $stmt->fetchColumn()==1;
+}
+
+function add_to_shopping_cart($product_id, $quantity) {
+    	$stmt = $this->pdo->prepare("INSERT INTO cart_items (user_id, product_id, quantity) VALUES (:user_id, :product_id, :quantity)");
+    	$stmt->execute([
+    	    	'user_id'    => $this->id,
+    	    	'product_id' => $product_id,
+    	    	'quantity'   => $quantity
+    	]);
+}
+
+function update_increment_prod_in_shopping_cart($product_id, $quantity) {
+    	$stmt = $this->pdo->prepare("UPDATE cart_items SET quantity = quantity + :quantity WHERE user_id = :user_id AND product_id = :product_id");
+    	$stmt->execute([
+    		'quantity'   => $quantity,
+    	    	'user_id'    => $this->id,
+    	    	'product_id' => $product_id
+    	]);
+}
+
+function update_prod_in_shopping_cart($product_id, $quantity) {
+   	 $stmt = $this->pdo->prepare("UPDATE cart_items SET quantity = :quantity WHERE user_id = :user_id AND product_id = :product_id");
+   	 $stmt->execute([
+   		'quantity'   => $quantity,
+   	    	'user_id'    => $this->id,
+   	    	'product_id' => $product_id
+   	 ]);
+}
+
+function get_shopping_cart(): ?PDOStatement {
+	$stmt = $this->pdo->prepare("SELECT * FROM cart_items WHERE user_id = :user_id");
+    	$stmt->execute(['user_id' => $this->id]);
+	return $stmt;
+}
+
+function delete_from_shopping_cart($product_id) {
+    	$stmt = $this->pdo->prepare("DELETE FROM cart_items WHERE user_id = :user_id AND product_id = :product_id");
+    	$stmt->execute([
+    	    	'user_id'    => $this->id,
+    	    	'product_id' => $product_id
+    	]);
 }
 } ?>

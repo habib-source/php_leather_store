@@ -15,6 +15,14 @@ function new(){
 	$this->id=$res->fetchColumn();
 }
 
+function mod(){
+	require_once(__DIR__.'/../Utils/pdo.php');
+	$cnx=new connexion();
+	$pdo=$cnx->CNXbase();
+	$req = "UPDATE orders SET status='$this->status' WHERE id=$this->id";
+        $pdo->query($req);
+}
+
 function add_a_item($product_id, $quantity, $price_at_purchase){
 	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
@@ -44,13 +52,14 @@ function get_all(){
 }
 
 
-function get($id){
-	require_once('../Utils/pdo.php');
+function get(){
+	require_once(__DIR__.'/../Utils/pdo.php');
 	$cnx=new connexion();
 	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM orders where id=$id";
+	$req="SELECT * FROM orders where id=$this->id";
 	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+	$data= $res->fetch(PDO::FETCH_LAZY);
+	return $data;
 }
 
 function get_order_items(){
