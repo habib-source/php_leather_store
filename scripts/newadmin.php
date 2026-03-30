@@ -17,6 +17,6 @@ $user->active=True;
 if($user->email_used() OR $user->user_name_used()){
 	exit("--user exist--");
 }else{
-	$user->new();
+	$user->create();
 }
 ?>

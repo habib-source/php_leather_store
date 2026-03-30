@@ -50,7 +50,7 @@ $order->total_amount=$total;
 $order->status="pending";
 $order->shipping_address=$_POST['shipping_address'];
 $order->user_id=$user->id;
-$order->new();
+$order->create();
 foreach ($quantity as $product_id => $final_qty) {
 	require_once(__DIR__ .'/../Models/prod.class.php');
 	$prod=new Prod();
