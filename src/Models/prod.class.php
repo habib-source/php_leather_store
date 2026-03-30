@@ -1,68 +1,61 @@
 <?php
+require_once(__DIR__ .'/../Utils/pdo.php');
 class Prod{
-public $id;
-public $sku;
-public $name;
-public $description;
-public $price;
-public $stock_quantity;
-public $img_path;
-public function getData() {
-        return [
+public ?int $id = NULL;
+public ?string $sku = NULL;
+public ?string $name = NULL;
+public ?string $description = NULL;
+public ?int $price = NULL;
+public ?int $stock_quantity = NULL;
+public ?string $img_path = NULL;
+private PDO $pdo;
+
+public function __construct(?PDO $pdo = null) {
+	$this->pdo ??= (new connexion())->CNXbase();
+}
+
+private function getData(): ?array {
+        return  array_filter([
         	'sku'            => $this->sku,
             	'name'           => $this->name,
             	'description'    => $this->description,
             	'price'          => $this->price,
             	'stock_quantity' => $this->stock_quantity,
             	'img_path'       => $this->img_path
-        ];
+        ], fn($value) => !is_null($value) && $value !== '');
 }
-function new(){
+
+public function create(){
 	$data =$this->getData();
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
-	$columns = implode(', ', array_keys($filtered));
-	$placeholders = ':' . implode(', :', array_keys($filtered));
+	$columns = implode(', ', array_keys($data));
+	$placeholders = ':' . implode(', :', array_keys($data));
 	$req = "INSERT INTO products ($columns) VALUES ($placeholders)";
-	$sth=$pdo->prepare($req);
-        $sth->execute($filtered) or print_r($pdo->errorInfo());
+	$sth=$this->pdo->prepare($req);
+        $sth->execute($data);
 }
 
-function dynamic_get($target, $ident){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	reset($ident);
-	$req="SELECT ".$target." FROM products where ".key($ident)."='".current($ident)."'";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+public function dynamic_get($target, $ident): ?string {
+        $column = key($ident);
+        $value = current($ident);
+        $stmt = $this->pdo->prepare("SELECT $target FROM products WHERE $column = :val");
+        $stmt->execute(['val' => $value]);
+        return $stmt;
 }
 
-function get(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM products where id=$this->id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	$data= $res->fetch(PDO::FETCH_LAZY);
-	return $data;
+public function get(): ?array {
+	$req="SELECT * FROM products where id = :id";
+	$stmt=$this->pdo->prepare($req);
+	$stmt->execute(['id' => $this->id]);
+	return $stmt->fetch();
 }
 
-function get_all(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
+public function get_all(): ?array{
 	$req="SELECT * FROM products";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+	$res=$this->pdo->query($req);
+	return $res->fetchAll();
 }
 
-function get_filtered_sorted($sort, $categories) {
-    require_once(__DIR__.'/../Utils/pdo.php');
-    $cnx = new connexion();
-    $pdo = $cnx->CNXbase();
+public function get_filtered_sorted($sort, $categories): ?array {
     $params = [];
     $has_categories = !empty($categories);
     if ($has_categories) {
@@ -86,67 +79,62 @@ function get_filtered_sorted($sort, $categories) {
         }
     }
     if ($has_categories) {
-        $stmt = $pdo->prepare($sql);
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        return $stmt;
+        return $stmt->fetchAll();
     } else {
-        return $pdo->query($sql);
+        return $this->pdo->query($sql)->fetchAll();
     }
 }
 
-function add_categorie($category_id){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "INSERT INTO products_categories (category_id, product_id) VALUES ($category_id,".$this->id.")";
-	$pdo->exec($req) or print_r($pdo->errorInfo());
+public function add_categorie($category_id){
+	$req = "INSERT INTO products_categories (category_id, product_id) VALUES (:category_id, :id)";
+	$stmt=$this->pdo->prepare($req);
+    	$stmt->execute([
+    		'id'    => $this->id,
+    		'category_id' => $category_id
+    	]);
 }
 
-function categorie_used($id){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req= "SELECT count(*) FROM products_categories WHERE category_id=$id AND product_id=$this->id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res->fetchColumn()==1;
+public function categorie_used($category_id): bool {
+	$req= "SELECT count(*) FROM products_categories WHERE category_id = :category_id AND product_id = :id";
+	$stmt=$this->pdo->prepare($req);
+    	$stmt->execute([
+    		'category_id' => $category_id,
+    		'id'    => $this->id
+    	]);
+	return $stmt->fetchColumn()==1;
 }
 
-function get_categories($id){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT DISTINCT c.name FROM products p, products_categories pc, categories c where p.id=pc.product_id AND pc.category_id=c.id AND p.id=$id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+public function get_categories($id): ?array {
+	$req="SELECT DISTINCT c.name FROM products p, products_categories pc, categories c where p.id=pc.product_id AND pc.category_id=c.id AND p.id = :id";
+	$stmt=$this->pdo->prepare($req);
+	$stmt->execute(['id' => $id]);
+	return $stmt->fetchAll();
 }
 
-function mod(){
+public function mod(){
 	$this->id=$this->get()["id"];
 	$data = $this->getData();
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
 	$setPart = [];
-   	foreach (array_keys($filtered) as $key) {
+   	foreach (array_keys($data) as $key) {
    		$setPart[] = "$key = :$key";
    	}
    	$setString = implode(', ', $setPart);
-	$req = "UPDATE products SET $setString WHERE id=$this->id";
-	$sth=$pdo->prepare($req);
-        $sth->execute($filtered) or print_r($pdo->errorInfo());
+	$req = "UPDATE products SET $setString WHERE id = :id";
+	$params = array_merge($data, ['id' => $this->id]);
+	$sth=$this->pdo->prepare($req);
+        $sth->execute($params);
 }
 
-function del($id){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
+public function del($id) {
 
-	$req="DELETE FROM products WHERE id=$id";
-	$pdo->exec($req);
+	$req="DELETE FROM products WHERE id = :id";
+	$stmt=$this->pdo->prepare($req);
+	$stmt->execute(['id' => $id]);
 }
 
-function sku_used(){
+public function sku_used(): bool {
 	$res=$this->dynamic_get("name", array("sku" => $this->sku));
 	return $res->rowCount()==1;
 }

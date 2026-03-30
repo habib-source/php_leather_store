@@ -1,5 +1,6 @@
 <?php
-require_once('../Utils/start_session.php');
+require_once(__DIR__ .'/../Utils/start_session.php');
+$config = require_once(__DIR__ .'/../../config.php');
 $pwd=$_POST["pwd"];
 $email=$_POST["email"];
 require_once('../Models/user.class.php');
@@ -10,7 +11,7 @@ if($user->email_used()){
 	$v=$user->verify();
 	if($v){
 		$data=$user->get();
-		if($data["active"]){
+		if($data["active"] || !$config["USER_EMAIL_VERF"]){
 			$_SESSION["connecte"]=TRUE;
 			$_SESSION["user"]=$data["user_name"];
 			$_SESSION["admin"]=$data["admin"];

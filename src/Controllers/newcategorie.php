@@ -13,7 +13,7 @@ if(!is_null($categ->name) AND $categ->name_used()){
 	$_SESSION["ERROR"]="name is used.";
 	header("location:../../View/admin_modify_categ.php?id=$id");
 }
-$categ->new();
+$categ->create();
 header("location:../../View/admin_list_categories.php");
 #}
 ?>

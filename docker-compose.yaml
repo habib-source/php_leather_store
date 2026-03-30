@@ -15,6 +15,7 @@ services:
       ADMIN_USER_EMAIL: admini@leather-store.com
       ADMIN_USER_PWD: admin
       URL: http://localhost/
+      DEBUG: false
     env_file:
       - .dockerenv
     volumes:

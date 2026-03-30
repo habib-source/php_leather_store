@@ -23,7 +23,7 @@ elseif($user->user_name_used()){
 		$user->generate_activation_code();
 		$user->send_activation_email();
 	}
-	$user->new();
+	$user->create();
 	if($config["USER_EMAIL_VERF"])
 		header("location:../../View/activate_your_account.php?user_name=$user_name");
 	else

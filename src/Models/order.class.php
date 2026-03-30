@@ -1,81 +1,81 @@
 <?php
+require_once(__DIR__ .'/../Utils/pdo.php');
 class Order{
-public $id;
-public $total_amount;
-public $status;
-public $shipping_address;
-public $user_id;
-function new(){
-	require_once('../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="INSERT INTO orders (total_amount,status,shipping_address,user_id) VALUES
-		($this->total_amount,'$this->status','$this->shipping_address',$this->user_id) RETURNING id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	$this->id=$res->fetchColumn();
+public ?int $id = NULL;
+public ?int $total_amount = NULL;
+public ?string $status = NULL;
+public ?string $shipping_address = NULL;
+public ?int $user_id = NULL;
+private PDO $pdo;
+
+public function __construct(?PDO $pdo = null) {
+	$this->pdo ??= (new connexion())->CNXbase();
+}
+public function create() {
+        $sql = "INSERT INTO orders (total_amount, status, shipping_address, user_id)
+                VALUES (:total, :status, :address, :user_id) RETURNING id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':total'    => $this->total_amount,
+            ':status'   => $this->status,
+            ':address'  => $this->shipping_address,
+            ':user_id'  => $this->user_id
+        ]);
+        $this->id = $stmt->fetchColumn();
 }
 
-function mod(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "UPDATE orders SET status='$this->status' WHERE id=$this->id";
-        $pdo->query($req);
+public function mod() {
+        $sql = "UPDATE orders SET status = :status WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':status' => $this->status,
+            ':id'     => $this->id
+        ]);
 }
 
-function add_a_item($product_id, $quantity, $price_at_purchase){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES ($this->id,$product_id,$quantity, $price_at_purchase)";
-	$pdo->exec($req) or print_r($pdo->errorInfo());
+public function add_a_item($productId, $quantity, $price) {
+        $sql = "INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase)
+                VALUES (:order_id, :product_id, :qty, :price)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':order_id'   => $this->id,
+            ':product_id' => $productId,
+            ':qty'        => $quantity,
+            ':price'      => $price
+        ]);
 }
 
-function get_target($target){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT ".$target." FROM orders where id=$this->id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	$data= $res->fetch(PDO::FETCH_LAZY);
-	return $data[$target];
+public function get_order_items(): ?array{
+	$req = "SELECT * from order_items where order_id = :id";
+	$stmt=$this->pdo->prepare($req);
+        $stmt->execute([':id' => $this->id]);
+	return $stmt->fetchAll();
 }
 
-
-function get_all(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM orders";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+public function get_target($target): ?string {
+        $sql = "SELECT $target FROM orders WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':id' => $this->id]);
+        return $stmt->fetch()[$target];
 }
 
-
-function get(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM orders where id=$this->id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	$data= $res->fetch(PDO::FETCH_LAZY);
+public function get(): ?array {
+	$req = "SELECT * FROM orders where id = :id";
+	$stmt = $this->pdo->prepare($req);
+        $stmt->execute([':id' => $this->id]);
+	$data = $stmt->fetch();
 	return $data;
 }
 
-function get_order_items(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req = "SELECT * from order_items where order_id =".$this->id;
-	$data=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $data;
+public function get_all(): ?array {
+        return $this->pdo->query("SELECT * FROM orders")->fetchAll();
 }
 
-function del(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="DELETE FROM orders WHERE id=$this->id";
-	$pdo->exec($req);
+
+public function del() {
+        $sql = "DELETE FROM orders WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':id' => $this->id]);
 }
+
 } ?>

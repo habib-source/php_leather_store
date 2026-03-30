@@ -24,7 +24,7 @@ elseif($user->user_name_used()){
 	$_SESSION["ERROR"]="User name is used.";
 	header("location:../../View/newadmin_form.php");
 }else{
-	$user->new();
+	$user->create();
 	header("location:../../View/adminpanel.php");
 }
 ?>

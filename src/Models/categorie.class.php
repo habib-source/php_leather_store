@@ -1,99 +1,85 @@
 <?php
+require_once(__DIR__ .'/../Utils/pdo.php');
 class Categorie{
-public $id;
-public $name;
-public $description;
-public function getData() {
-        return [
+public ?int $id = NULL;
+public ?string $name = NULL;
+public ?string $description = NULL;
+private PDO $pdo;
+
+public function __construct(?PDO $pdo = null) {
+	$this->pdo ??= (new connexion())->CNXbase();
+}
+
+private function getData(): ?array {
+        return array_filter([
             	'name'           => $this->name,
             	'description'    => $this->description,
-        ];
+        ], fn($value) => !is_null($value) && $value !== '');
 }
-function new(){
+
+public function create(){
 	$data =$this->getData();
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
-	$columns = implode(', ', array_keys($filtered));
-	$placeholders = ':' . implode(', :', array_keys($filtered));
+	$columns = implode(', ', array_keys($data));
+	$placeholders = ':' . implode(', :', array_keys($data));
 	$req = "INSERT INTO categories ($columns) VALUES ($placeholders)";
-	$sth=$pdo->prepare($req);
-        $sth->execute($filtered) or print_r($pdo->errorInfo());
+	$sth=$this->pdo->prepare($req);
+        $sth->execute($data);
 }
 
-function list(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
+public function list(): ?array {
 	$req="SELECT * FROM categories";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+	$res=$this->pdo->query($req);
+	return $res->fetchAll();
 }
 
-function dynamic_get($target, $ident){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	reset($ident);
-	$req="SELECT ".$target." FROM categories where ".key($ident)."='".current($ident)."'";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+public function dynamic_get($target, $ident): ?array {
+        $column = key($ident);
+        $value = current($ident);
+        $stmt = $this->pdo->prepare("SELECT $target FROM categories WHERE $column = :val");
+        $stmt->execute(['val' => $value]);
+        return $stmt->fetchAll();
 }
 
-function get(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="SELECT * FROM categories where id=$this->id";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+public function get(): ?array {
+	$req="SELECT * FROM categories where id = :id";
+	$stmt=$this->pdo->prepare($req);
+	$stmt->execute(['id' => $id]);
+	return $stmt->fetchAll();
 }
 
-function get_all(){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
+public function get_all(): ?array{
 	$req="SELECT * FROM categories";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+	$res=$this->pdo->query($req);
+	return $res->fetchAll();
 }
 
-function get_column($column){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
+public function get_column($column): ?array{
 	$req="SELECT $column FROM categories";
-	$res=$pdo->query($req) or print_r($pdo->errorInfo());
-	return $res;
+	$res=$this->pdo->query($req);
+	return $res->fetchAll();
 }
 
-function mod(){
+public function mod(){
 	$this->id=$this->get()["id"];
 	$data = $this->getData();
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
 	$setPart = [];
-   	foreach (array_keys($filtered) as $key) {
+   	foreach (array_keys($data) as $key) {
    		$setPart[] = "$key = :$key";
    	}
    	$setString = implode(', ', $setPart);
-	$req = "UPDATE categories SET $setString WHERE id=$this->id";
-	$sth=$pdo->prepare($req);
-        $sth->execute($filtered) or print_r($pdo->errorInfo());
+	$req = "UPDATE categories SET $setString WHERE id = :id";
+	$params = array_merge($data, ['id' => $this->id]);
+	$sth=$this->pdo->prepare($req);
+        $sth->execute($params);
 }
 
-function del($id){
-	require_once(__DIR__.'/../Utils/pdo.php');
-	$cnx=new connexion();
-	$pdo=$cnx->CNXbase();
-	$req="DELETE FROM categories WHERE id='$id'";
-	$pdo->exec($req);
+public function del($id){
+	$req="DELETE FROM categories WHERE id = :id";
+	$stmt=$this->pdo->prepare($req);
+	$stmt->execute(['id' => $id]);
 }
 
-function name_used(){
+public function name_used(): bool{
 	$res=$this->dynamic_get("name", array("name" => $this->name));
 	return $res->rowCount()==1;
 }

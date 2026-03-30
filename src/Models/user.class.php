@@ -20,13 +20,13 @@ private ?string $activation_expiry = NULL;
 private array $config;
 private PDO $pdo;
 
-function __construct(?array $config = null, ?PDO $pdo = null) {
+public function __construct(?array $config = null, ?PDO $pdo = null) {
 	$this->config ??= require(__DIR__ ."/../../config.php");
 	$this->pdo ??= (new connexion())->CNXbase();
 }
 
-public function getData(): ?array  {
-        return [
+private function getData(): ?array  {
+        return array_filter([
 		'user_name'  		=> $this->user_name,
 		'email'      		=> $this->email,
 		'pwd'        		=> $this->pwd,
@@ -39,20 +39,19 @@ public function getData(): ?array  {
 		'user_sex'   		=> $this->user_sex,
 		'birthday' 		=> $this->birthday,
 		'img_path'   		=> $this->img_path
-	];
+	], fn($value) => !is_null($value) && $value !== '');
 }
 
-function new(){
+public function create(){
 	$data = $this->getData();
-	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
-	$columns = implode(', ', array_keys($filtered));
-	$placeholders = ':' . implode(', :', array_keys($filtered));
+	$columns = implode(', ', array_keys($data));
+	$placeholders = ':' . implode(', :', array_keys($data));
 	$req = "INSERT INTO users ($columns) VALUES ($placeholders)";
 	$sth=$this->pdo->prepare($req);
-        $sth->execute($filtered) or print_r($this->pdo->errorInfo());
+        $sth->execute($data);
 }
 
-function verify(): bool{
+public function verify(): bool{
 	$req = "SELECT pwd FROM users WHERE email = :email";
     	$sth = $this->pdo->prepare($req);
     	$sth->execute(['email' => $this->email]);
@@ -60,7 +59,7 @@ function verify(): bool{
     	return ($p && password_verify($this->pwd, $p["pwd"]));
 }
 
-function dynamic_get($target, $ident): ?string {
+public function dynamic_get($target, $ident): ?string {
         $column = key($ident);
         $value = current($ident);
         $stmt = $this->pdo->prepare("SELECT $target FROM users WHERE $column = :val");
@@ -69,11 +68,11 @@ function dynamic_get($target, $ident): ?string {
         return $data ? $data[$target] : null;
 }
 
-function get_target($target): ?string {
+public function get_target($target): ?string {
 	return $this->dynamic_get($target, array('id' => $this->id));
 }
 
-function get(): ?array {
+public function get(): ?array {
         $sql = "SELECT * FROM users WHERE ";
         $params = [];
 
@@ -94,54 +93,54 @@ function get(): ?array {
         return $stmt->fetch();
 }
 
-function get_all(): ?array {
+public function get_all(): ?array {
 	$req="SELECT * FROM users";
 	$res=$this->pdo->query($req);
-	return $res;
+	return $res->fetchAll();
 }
 
-function mod(){
+public function mod(){
 	$this->id=$this->get()["id"];
 	$data = $this->getData();
-	$filtered = array_filter($data, fn($value) => !is_null($value) && $value !== '');
 	$setPart = [];
-   	foreach (array_keys($filtered) as $key) {
+   	foreach (array_keys($data) as $key) {
    		$setPart[] = "$key = :$key";
    	}
    	$setString = implode(', ', $setPart);
 	$req = "UPDATE users SET $setString WHERE id = :id";
-	$params = array_merge($filtered, ['id' => $this->id]);
+	$params = array_merge($data, ['id' => $this->id]);
 	$sth = $this->pdo->prepare($req);
     	$sth->execute($params);
 }
 
-function del($id) {
+public function del($id) {
     $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
     $stmt->execute(['id' => $id]);
 }
 
-function email_used(): bool {
+public function email_used(): bool {
     $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE email = :email");
     $stmt->execute(['email' => $this->email]);
     return $stmt->fetchColumn() == 1;
 }
 
-function user_name_used(): bool {
+public function user_name_used(): bool {
     	$stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE user_name = :user_name");
     	$stmt->execute(['user_name' => $this->user_name]);
     	return $stmt->fetchColumn() ==1;
 }
 
-function generate_activation_code(){
+public function generate_activation_code(){
 	$this->activation_code = bin2hex(random_bytes(16));
 	$this->activation_expiry = date('Y-m-d H:i:s',  time() + $this->config["ACTIVATION_EXPIRY_PERIOD"]);
 }
 
-function send_email($sub, $body, $alt_body){
+private function send_email($sub, $body, $alt_body){
     	require  __DIR__ ."/../../".$this->config["VENDOR_DIR"].'/autoload.php';
     	$mail = new PHPMailer(true);
 	try {
 		$mail->isSMTP();
+		$mail->SMTPDebug = $this->config["DEBUG"] ? SMTP::DEBUG_SERVER : SMTP::DEBUG_OFF;
 		$mail->Host = $this->config["EMAIL_HOST"];
 		$mail->Port = $this->config["EMAIL_HOST_PORT"];
 		if($this->config["EMAIL_HOST_PORT"]==465 OR
@@ -163,7 +162,7 @@ function send_email($sub, $body, $alt_body){
 	}
 }
 
-function send_activation_email(){
+public function send_activation_email(){
 	$activation_link = $this->config["URL"] . "src/Controllers/activate.php?email=".$this->email."&activation_code=".$this->activation_code;
 	$Subject = 'Activate your account';
 	$Body    = "Click <a href='" . htmlspecialchars($activation_link) . "'>HERE</a> to activate your account";
@@ -171,30 +170,30 @@ function send_activation_email(){
 	$this->send_email($Subject, $Body, $AltBody);
 }
 
-function send_Status_update_email($status){
+public function send_Status_update_email($status){
 	$Subject = 'Order Status update';
 	$Body    = "Your order is  " . htmlspecialchars($status);
     	$AltBody = $Body;
 	$this->send_email($Subject, $Body, $AltBody);
 }
 
-function activate_user(){
+public function activate_user(){
 	$this->active=TRUE;
 	$this->mod();
 }
 
-function get_orders(): ?PDOStatement {
+public function get_orders(): ?array {
         $stmt = $this->pdo->prepare("SELECT * FROM orders where user_id = :id");
         $stmt->execute(['id' => $this->id]);
-	return $stmt;
+	return $stmt->fetchAll();
 }
 
-function clean_chopping_cart(){
+public function clean_chopping_cart(){
         $stmt = $this->pdo->prepare("DELETE FROM cart_items where user_id = :id");
         $stmt->execute(['id' => $this->id]);
 }
 
-function exist_in_shopping_cart($product_id): bool {
+public function exist_in_shopping_cart($product_id): bool {
 	$stmt = $this->pdo->prepare("SELECT COUNT(*) FROM cart_items WHERE user_id = :user_id AND product_id = :product_id");
     	$stmt->execute([
     		'user_id'    => $this->id,
@@ -203,7 +202,7 @@ function exist_in_shopping_cart($product_id): bool {
 	return $stmt->fetchColumn()==1;
 }
 
-function add_to_shopping_cart($product_id, $quantity) {
+public function add_to_shopping_cart($product_id, $quantity) {
     	$stmt = $this->pdo->prepare("INSERT INTO cart_items (user_id, product_id, quantity) VALUES (:user_id, :product_id, :quantity)");
     	$stmt->execute([
     	    	'user_id'    => $this->id,
@@ -212,7 +211,7 @@ function add_to_shopping_cart($product_id, $quantity) {
     	]);
 }
 
-function update_increment_prod_in_shopping_cart($product_id, $quantity) {
+public function update_increment_prod_in_shopping_cart($product_id, $quantity) {
     	$stmt = $this->pdo->prepare("UPDATE cart_items SET quantity = quantity + :quantity WHERE user_id = :user_id AND product_id = :product_id");
     	$stmt->execute([
     		'quantity'   => $quantity,
@@ -221,7 +220,7 @@ function update_increment_prod_in_shopping_cart($product_id, $quantity) {
     	]);
 }
 
-function update_prod_in_shopping_cart($product_id, $quantity) {
+public function update_prod_in_shopping_cart($product_id, $quantity) {
    	 $stmt = $this->pdo->prepare("UPDATE cart_items SET quantity = :quantity WHERE user_id = :user_id AND product_id = :product_id");
    	 $stmt->execute([
    		'quantity'   => $quantity,
@@ -230,13 +229,13 @@ function update_prod_in_shopping_cart($product_id, $quantity) {
    	 ]);
 }
 
-function get_shopping_cart(): ?PDOStatement {
+public function get_shopping_cart(): ?array {
 	$stmt = $this->pdo->prepare("SELECT * FROM cart_items WHERE user_id = :user_id");
     	$stmt->execute(['user_id' => $this->id]);
-	return $stmt;
+	return $stmt->fetchAll();
 }
 
-function delete_from_shopping_cart($product_id) {
+public function delete_from_shopping_cart($product_id) {
     	$stmt = $this->pdo->prepare("DELETE FROM cart_items WHERE user_id = :user_id AND product_id = :product_id");
     	$stmt->execute([
     	    	'user_id'    => $this->id,
