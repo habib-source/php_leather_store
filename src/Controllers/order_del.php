@@ -10,7 +10,7 @@ $order=new order();
 $order->id=$_GET['id'];
 $order->user_id=$order->get_target("user_id");
 if($order->user_id==$user->id)
-	$order->del();
+	$order->delete();
 else
 	setcookie('ERROR', "a User can only delete he's own orders");
 header('location:../../View/user_orders_list.php');

@@ -65,7 +65,7 @@ echo "<p>".$data['price']." USD</p>";
 	<?php
 	require_once('../src/Models/categorie.class.php');
 	$categ=new Categorie();
-	$res=$categ->get_all();
+	$res=$categ->getAll();
 	foreach ($res as $c) {
 		echo "<input type='checkbox' id='categories' name='categories[]' value='".$c['name']."'>".$c['name']."<br>";
 	}

@@ -25,7 +25,7 @@ require_once(__DIR__.'/static/header.php');
 
 require_once('../src/Models/order.class.php');
 $orders=new Order();
-$res=$orders->get_all();
+$res=$orders->getAll();
 
 require_once('../src/Models/user.class.php');
 $user=new user();

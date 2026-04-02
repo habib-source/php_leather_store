@@ -24,7 +24,7 @@ public function create() {
         $this->id = $stmt->fetchColumn();
 }
 
-public function mod() {
+public function update() {
         $sql = "UPDATE orders SET status = :status WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
@@ -67,12 +67,12 @@ public function get(): ?array {
 	return $data;
 }
 
-public function get_all(): ?array {
+public function getAll(): ?array {
         return $this->pdo->query("SELECT * FROM orders")->fetchAll();
 }
 
 
-public function del() {
+public function delete() {
         $sql = "DELETE FROM orders WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id' => $this->id]);

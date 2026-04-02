@@ -39,6 +39,6 @@ if($_FILES['photo']['size']!=0){
 	$user->img_path= $img_path;
 	move_uploaded_file($_FILES["photo"]["tmp_name"], __DIR__ ."/../../media/".$img_path);
 }
-$user->mod();
+$user->update();
 header("location:../../View/my_account.php");
 ?>

@@ -11,6 +11,6 @@ $id=$_GET['id'];
 $img_path=$prod->dynamic_get("img_path", array("id" => $id));
 if(!is_null($img_path))
 	unlink(__DIR__."/../../media/".$img_path);
-$prod->del($id);
+$prod->delete($id);
 header('location:../../View/admin_list_products.php');
 ?>

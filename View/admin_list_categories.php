@@ -22,7 +22,7 @@ require_once(__DIR__.'/static/header.php');
 
 require_once('../src/Models/categorie.class.php');
 $categ=new Categorie();
-$res=$categ->get_all();
+$res=$categ->getAll();
 
 
 foreach ($res as $p) {

@@ -29,7 +29,7 @@ if($user->email_used()){
 		else{
 			$user->generate_activation_code();
 			$user->pwd='';
-			$user->mod();
+			$user->update();
 			$user->send_activation_email();
 			header("location:../../View/activate_your_account.php?user_name=".$data["user_name"]);
 		}

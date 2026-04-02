@@ -27,7 +27,7 @@ require_once(__DIR__.'/static/header.php');
 
 require_once('../src/Models/prod.class.php');
 $prod=new Prod();
-$res=$prod->get_all();
+$res=$prod->getAll();
 
 
 foreach ($res as $p) {

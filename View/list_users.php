@@ -29,7 +29,7 @@ require_once(__DIR__.'/static/header.php');
 
 require_once('../src/Models/user.class.php');
 $user=new User();
-$res=$user->get_all();
+$res=$user->getAll();
 
 
 foreach ($res as $u) {

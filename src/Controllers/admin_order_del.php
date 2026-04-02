@@ -8,6 +8,6 @@ if(!$_SESSION["admin"]){
 require_once(__DIR__ .'/../Models/order.class.php');
 $order=new order();
 $order->id=$_GET['id'];
-$order->del();
+$order->delete();
 header('location:../../View/admin_list_orders.php');
 ?>

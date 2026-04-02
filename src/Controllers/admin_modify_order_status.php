@@ -13,7 +13,7 @@ $order->id=$_POST["id"];
 $id=$_POST["id"];
 $data=$order->get();
 $order->status=$_POST["status"] ?? null;
-$order->mod();
+$order->update();
 require_once('../Models/user.class.php');
 $user=new user();
 $user->id=$data["user_id"];

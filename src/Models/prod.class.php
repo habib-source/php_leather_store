@@ -49,7 +49,7 @@ public function get(): ?array {
 	return $stmt->fetch();
 }
 
-public function get_all(): ?array{
+public function getAll(): ?array{
 	$req="SELECT * FROM products";
 	$res=$this->pdo->query($req);
 	return $res->fetchAll();
@@ -113,7 +113,7 @@ public function get_categories($id): ?array {
 	return $stmt->fetchAll();
 }
 
-public function mod(){
+public function update(){
 	$this->id=$this->get()["id"];
 	$data = $this->getData();
 	$setPart = [];
@@ -127,7 +127,7 @@ public function mod(){
         $sth->execute($params);
 }
 
-public function del($id) {
+public function delete($id) {
 
 	$req="DELETE FROM products WHERE id = :id";
 	$stmt=$this->pdo->prepare($req);

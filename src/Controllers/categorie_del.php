@@ -8,6 +8,6 @@ if(!$_SESSION["admin"]){
 require_once(__DIR__ .'/../Models/categorie.class.php');
 $categ=new Categorie();
 $id=$_GET['id'];
-$categ->del($id);
+$categ->delete($id);
 header('location:../../View/admin_list_categories.php');
 ?>

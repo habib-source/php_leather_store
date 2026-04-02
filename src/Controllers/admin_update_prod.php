@@ -30,6 +30,6 @@ if($_FILES['photo']['size']!=0){
 	$prod->img_path= $img_path;
 	move_uploaded_file($_FILES["photo"]["tmp_name"], __DIR__ ."/../../media/".$img_path);
 }
-$prod->mod();
+$prod->update();
 header("location:../../View/admin_list_products.php");
 ?>

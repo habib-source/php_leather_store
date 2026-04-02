@@ -75,7 +75,6 @@ public function get_target($target): ?string {
 public function get(): ?array {
         $sql = "SELECT * FROM users WHERE ";
         $params = [];
-
         if (!empty($this->id)) {
             $sql .= "id = :id";
             $params['id'] = $this->id;
@@ -93,13 +92,13 @@ public function get(): ?array {
         return $stmt->fetch();
 }
 
-public function get_all(): ?array {
+public function getAll(): ?array {
 	$req="SELECT * FROM users";
 	$res=$this->pdo->query($req);
 	return $res->fetchAll();
 }
 
-public function mod(){
+public function update(){
 	$this->id=$this->get()["id"];
 	$data = $this->getData();
 	$setPart = [];
@@ -113,7 +112,7 @@ public function mod(){
     	$sth->execute($params);
 }
 
-public function del($id) {
+public function delete($id) {
     $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
     $stmt->execute(['id' => $id]);
 }
@@ -179,7 +178,7 @@ public function send_Status_update_email($status){
 
 public function activate_user(){
 	$this->active=TRUE;
-	$this->mod();
+	$this->update();
 }
 
 public function get_orders(): ?array {

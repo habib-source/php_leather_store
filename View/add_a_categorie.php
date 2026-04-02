@@ -12,7 +12,7 @@ $id=$_GET["id"];
 $prod_name=$prod->dynamic_get("name", array("id" => $id))->fetchColumn();
 require_once('../src/Models/categorie.class.php');
 $categ=new Categorie();
-$res=$categ->get_all();
+$res=$categ->getAll();
 require_once(__DIR__.'/static/header.php');
 echo "<h1>Add $prod_name to categorie:</h1>"
 ?>
