@@ -1,7 +1,7 @@
 CREATE TYPE sex AS enum ('F', 'M');
 
 CREATE TABLE users (
-  id GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   user_name varchar(100) UNIQUE NOT NULL,
   pwd varchar(255) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE users (
 );
 
 CREATE TABLE categories (
-  id GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name VARCHAR(100) NOT NULL UNIQUE,
   description TEXT
 );
@@ -29,7 +29,7 @@ CREATE TABLE products_categories (
 );
 
 CREATE TABLE products (
-  id GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   sku VARCHAR(50) UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
   price DECIMAL(12, 2) NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE products (
 CREATE TYPE order_status AS ENUM ('pending', 'processing', 'shipped', 'delivered', 'cancelled');
 
 CREATE TABLE orders (
-  id GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   total_amount DECIMAL(12, 2) NOT NULL,
   status order_status DEFAULT 'pending',
   shipping_address TEXT NOT NULL,
