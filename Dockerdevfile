@@ -1,4 +1,4 @@
-FROM php:8.5-cli-alpine3.23 as builder
+FROM php:18.3-cli-alpine3.23 as builder
 COPY --from=composer/composer:2.9.5 /usr/bin/composer /usr/bin/composer
 COPY composer.json .
 RUN composer install \
